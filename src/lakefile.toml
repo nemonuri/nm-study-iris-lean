@@ -1,0 +1,13 @@
+name = "IrisStudy"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["IrisStudy"]
+
+[[require]]
+name = "Iris"
+git.url = "https://github.com/leanprover-community/iris-lean.git" 
+git.subDir = "IrisMath" 
+rev = "master"
+
+[[lean_lib]]
+name = "IrisStudy"
