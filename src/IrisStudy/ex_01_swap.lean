@@ -81,19 +81,45 @@ variable {GF : BundledGFunctors} [hlgs: HeapLangGS hlc GF]
 set_option trace.Meta.synthInstance true in
 #synth Std.LawfulPartialMap HeapF Loc
 
---#synth IProp
+set_option trace.Meta.synthInstance true in
+#synth UCMRA (IResUR GF)
 
---set_option trace.Meta.synthInstance true in
---#synth Std.Heap HeapF Loc
+set_option trace.Meta.synthInstance true in
+#synth CMRA DFrac
+
+set_option trace.Meta.synthInstance true in
+#synth ProgramLogic.ToVal Exp Val
+
+set_option trace.Meta.synthInstance true in
+#synth Wp (IProp GF) Exp Val Stuckness
 
 
+#print wp.def
+
+#print HeapLangS
+
+#check UPred.instBIBaseUPred
+
+#print instUCMRAIResUR
+
+#print instEctxItemLanguageExp
+
+--set_option pp.explicit true in
+/-
 set_option trace.Meta.synthInstance true in
 set_option pp.notation false in
 open Iris.Std in
-theorem pointsTo_eq_get? (x: Loc) (v: Option Val)
-  : iprop( x ↦ v ) = iprop( ⌜∀(k: HeapF Val), get? k x = v ⌝ ) := by
-  have bi : BI (IProp GF) := inferInstance
-  sorry
+theorem pointsTo_entails_eq_get? (x: Loc) (v: Option Val)
+  : x ↦ v ⊢ ∀(hp: HeapF Val), ⌜get? hp x = v ⌝ := by
+  refine (fun n0 valid_at pts_to => ?_)
+-/
+  --rcases valid_at with ⟨res, res_p⟩
+  --have lm1 := valid_at.property
+  --have := pointsTo_persist
+  --unfold pointsTo
+  --unfold ghost_map_elem
+  --have bi : BI (IProp GF) := inferInstance
+  --sorry
 
 
 /-
@@ -105,34 +131,43 @@ theorem pointsTo_none_eq_empty x
   have lm1 := lfm.toList_get?_none
 -/
 
-/-
-theorem swap_spec x y v1 v2 (Φ : Val → IProp GF) :
+set_option trace.Meta.synthInstance true in
+theorem swap_spec x y (v1 v2: Val) (Φ : Val → IProp GF) :
   ⊢@{IProp GF}
-  ( x ↦ v1 ∗ y ↦ v2 ) -∗
-  (( x ↦ v2 ∗ y ↦ v1 ) -∗ Φ hl_val(#()) ) -∗
-  WP hl(&swap #x #y) {{ v, Φ v }}
+  ( x ↦ some v1 ∗ y ↦ some v2 ) -∗
+  (( x ↦ some v2 ∗ y ↦ some v1 ) -∗ Φ hl_val(#()) ) -∗
+  WP hl(&swap #x #y) {{ Φ }}
   := by
   istart
   iintro ⟨h1, h2⟩ h3
-  iloeb as ih4
   wp_rec; wp_pures
-  cases v1 with
-  | none =>
--/
-  --cases v1 with
-  --| none => wp_expr_simp
-  --iloeb as lm1
-  --iapply wp_load
-  --ihave _ := wp_load $$ %Φ h1
-  --irevert h1 h2 h3
-  --inext
-  --ihave %lm1 := wp_load Φ && *h1
-   --h1 h2
-  --icases h1 with ⟨h1_1, h1_2⟩
 
-  --wp_rec
-  --icases h1 with ⟨h2, h3⟩
-  --unfold swap
+  wp_bind !_
+  iapply wp_load $$ h1
+  iintro !> h1
+  wp_pures
+
+  wp_bind !_
+  iapply wp_load $$ h2
+  iintro !> h2
+
+  wp_bind _ ← _
+  iapply wp_store $$ h1
+  iintro !> h1
+  wp_pures
+
+  wp_bind _ ← _
+  iapply wp_store $$ h2
+  iintro !> h2
+
+  iapply h3
+  isplitl [h1]
+  · iexact h1
+  · iexact h2
+
+
+
+
 
 
 
